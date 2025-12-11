@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>Configurator Fotovoltaic – Profceiss</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body { font-family: Arial; background:#f3f3f3; margin:0; }
+h1,h2,h3 { margin:0 0 10px 0; }
+
+button{
+ padding:8px 15px;background:#007AFF;border:none;
+ color:white;cursor:pointer;border-radius:6px;font-weight:bold;
+}
+button:hover{background:#005FCC;}
+
+nav{
+ display:flex;gap:10px;padding:15px;border-bottom:1px solid #ddd;
+ background:white;flex-wrap:wrap;
+}
+nav button{ padding:10px 18px; }
+
+.tab_section{
+ background:white;margin-top:15px;padding:20px;border-radius:8px;
+}
+
+table{width:100%;border-collapse:collapse;}
+th{background:#007AFF;color:white;padding:10px;}
+td{padding:8px;background:#f9f9f9;}
+tr:nth-child(even) td{background:#efefef;}
+
+.box,.admin_box{
+ background:white;padding:15px;border-radius:8px;width:260px;
+ display:flex;flex-direction:column;gap:10px;
+}
+
+.field-small,.field-number{ width:100%;padding:8px; }
+
+#final_total{ font-size:28px;font-weight:bold; }
+
+#login_screen input{
+ width:250px;border-radius:6px;border:1px solid #aaa;padding:8px;
+}
+#login_screen button{ width:250px;margin-top:10px; }
+
+@media(max-width:900px){
+ nav{flex-direction:column;}
+ .box,.admin_box{width:100%;}
+}
+</style>
+
+</head>
+<body>
+
+<div id="login_screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;">
+    <h2>Autentificare</h2>
+    <p>Introduceți parola:</p>
+    <input id="login_pass" type="password">
+    <button onclick="checkPassword()">Autentifică</button>
+    <p id="login_error" style="color:red;display:none;">Parolă incorectă!</p>
+</div>
+
+<div id="main_content" style="display:none;">
+
+<header style="display:flex;align-items:center;gap:20px;padding:15px;border-bottom:1px solid #ccc;">
+    <img src="Logo Profceiss.png" style="height:60px;">
+    <h1>Configurator Fotovoltaic – Profceiss</h1>
+</header>
+
+<nav>
+<button onclick="showTab('admin_invertoare')">Admin Invertoare</button>
+<button onclick="showTab('admin_baterii')">Admin Baterii</button>
+<button onclick="showTab('admin_panouri')">Admin Panouri</button>
+<button onclick="showTab('admin_montaj')">Admin Montaj</button>
+<button onclick="showTab('admin_tablou')">Admin Tablou Insularizare</button>
+<button onclick="showTab('admin_altele')">Admin Altele</button>
+<button onclick="showTab('configurator')">Configurator</button>
+</nav>
+
+<section id="admin_invertoare" class="tab_section" style="display:none;">
+<h2>Administrare Invertoare</h2>
+<table id="tbl_invertoare">
+<tr><th>Model</th><th>Putere (kW)</th><th>Preț catalog</th><th></th></tr>
+</table>
+<div class="admin_box">
+    <input id="inv_model" placeholder="Model invertor">
+    <input id="inv_power" type="number" placeholder="Putere kW">
+    <input id="inv_price" type="number" placeholder="Preț catalog">
+
+    <select id="inv_phase">
+        <option value="mono">Monofazat</option>
+        <option value="tri">Trifazat</option>
+    </select>
+
+    <button onclick="addInverter()">Adaugă</button>
+</div>
+
+</section>
+
+<section id="admin_baterii" class="tab_section" style="display:none;">
+<h2>Administrare Baterii</h2>
+<table id="tbl_baterii">
+<tr><th>Model</th><th>Capacitate (kWh)</th><th>Preț catalog</th><th></th></tr>
+</table>
+<div class="admin_box">
+    <input id="bat_model" placeholder="Model baterie">
+    <input id="bat_cap" type="number" placeholder="Capacitate kWh">
+    <input id="bat_price" type="number" placeholder="Preț catalog">
+
+    <select id="bat_inv_compat"></select>
+
+    <button onclick="addBattery()">Adaugă</button>
+</div>
+</section>
+
+<section id="admin_panouri" class="tab_section" style="display:none;">
+<h2>Administrare Panouri</h2>
+<table id="tbl_panouri">
+<tr><th>Model</th><th>Putere (W)</th><th>Preț catalog</th><th></th></tr>
+</table>
+<div class="admin_box">
+<input id="pan_model" placeholder="Model panou">
+<input id="pan_power" type="number" placeholder="Putere W">
+<input id="pan_price" type="number" placeholder="Preț catalog">
+<button onclick="addPanel()">Adaugă</button>
+</div>
+</section>
+
+<section id="admin_montaj" class="tab_section" style="display:none;">
+<h2>Administrare Montaj</h2>
+<table id="tbl_montaj">
+<tr><th>Denumire</th><th>Preț ML</th><th></th></tr>
+</table>
+<div class="admin_box">
+<input id="montaj_name" placeholder="Denumire montaj">
+<input id="montaj_price" type="number" placeholder="Preț / ML">
+<button onclick="addMontaj()">Adaugă</button>
+</div>
+</section>
+
+<section id="admin_tablou" class="tab_section" style="display:none;">
+<h2>Administrare Tablou Insularizare</h2>
+<table id="tbl_tablou">
+<tr><th>Model</th><th>Preț catalog</th><th></th></tr>
+</table>
+<div class="admin_box">
+<input id="tab_model" placeholder="Model tablou">
+<input id="tab_price" type="number" placeholder="Preț catalog">
+<button onclick="addTablou()">Adaugă</button>
+</div>
+</section>
+
+<section id="admin_altele" class="tab_section" style="display:none;">
+<h2>Administrare Altele</h2>
+<table id="tbl_altele">
+<tr><th>Denumire</th><th>Preț</th><th></th></tr>
+</table>
+<div class="admin_box">
+<input id="alt_name" placeholder="Denumire articol">
+<input id="alt_price" type="number" placeholder="Preț">
+<button onclick="addAlt()">Adaugă</button>
+</div>
+</section>
+
+<section id="configurator" class="tab_section" style="display:none;">
+<h2>Configurator Sistem Fotovoltaic</h2>
+
+<div class="box">
+<h3>Tip branșament</h3>
+<select id="sel_br">
+<option value="mono">Monofazat</option>
+<option value="tri">Trifazat</option>
+</select>
+</div>
+
+<div class="box">
+<h3>Tip client</h3>
+<select id="sel_client" onchange="toggleTablou()">
+<option value="casnic">Casnic</option>
+<option value="non">Non-casnic</option>
+</select>
+</div>
+
+<div id="tablou_box" class="box" style="display:none;">
+<h3>Tablou insularizare</h3>
+<select id="sel_tablou"></select>
+<input id="qty_tablou" type="number" placeholder="Cantitate">
+<input id="add_tablou" type="number" placeholder="Adaos %">
+<p>Total tablou: <span id="total_tablou">0</span> lei</p>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;">
+
+<div class="box">
+<h3>Invertor</h3>
+<select id="sel_inv"></select>
+<input id="qty_inv" type="number" placeholder="Cantitate">
+<input id="add_inv" type="number" placeholder="Adaos %">
+</div>
+
+<div class="box">
+<h3>Baterie</h3>
+<select id="sel_bat"></select>
+<input id="qty_bat" type="number" placeholder="Cantitate">
+<input id="add_bat" type="number" placeholder="Adaos %">
+</div>
+
+<div class="box">
+<h3>Panouri</h3>
+<select id="sel_pan"></select>
+<input id="qty_pan" type="number" placeholder="Cantitate">
+<input id="add_pan" type="number" placeholder="Adaos %">
+</div>
+<p><b>Putere totală sistem:</b> <span id="power_total">0 kW</span></p>
+
+<div class="box">
+<h3>Montaj</h3>
+<select id="sel_montaj"></select>
+<input id="ml_montaj" type="number" placeholder="Metri liniari">
+</div>
+
+<div class="box">
+<h3>Altele</h3>
+<select id="sel_alt"></select>
+<input id="qty_alt" type="number" placeholder="Cantitate">
+</div>
+
+</div>
+
+<h2>Totaluri</h2>
+<p>Total invertor: <span id="total_inv">0</span> lei</p>
+<p>Total baterii: <span id="total_bat">0</span> lei</p>
+<p>Total panouri: <span id="total_pan">0</span> lei</p>
+<p>Total montaj: <span id="total_montaj">0</span> lei</p>
+<p>Total altele: <span id="total_alt">0</span> lei</p>
+<p>Total tablou: <span id="total_tablou2">0</span> lei</p>
+
+<h2 style="color:green;">TOTAL FINAL: <span id="final_total">0</span> lei</h2>
+
+<button onclick="exportExcel()">Exportă în Excel</button>
+
+</section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+
+function checkPassword(){
+ if(login_pass.value==="Profceiss2025"){
+ login_screen.style.display="none";
+ main_content.style.display="block";
+ refreshTables();
+ populateSelectors();
+ } else login_error.style.display="block";
+}
+
+function showTab(id){
+ document.querySelectorAll(".tab_section").forEach(s=>s.style.display="none");
+ document.getElementById(id).style.display="block";
+}
+
+function load(k){ return JSON.parse(localStorage.getItem(k)||"[]"); }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+
+function refreshTables(){
+
+let inv = load("invertoare");
+tbl_invertoare.innerHTML =
+ "<tr><th>Model</th><th>Putere</th><th>Preț</th><th></th></tr>";
+inv.forEach((x,i)=>tbl_invertoare.innerHTML+=
+ `<tr><td>${x.model}</td><td>${x.power}</td><td>${x.pret}</td>
+<td><button onclick="delInverter(${i})">Șterge</button></td></tr>`);
+
+let bat = load("baterii");
+tbl_baterii.innerHTML =
+ "<tr><th>Model</th><th>Cap</th><th>Preț</th><th></th></tr>";
+bat.forEach((x,i)=>tbl_baterii.innerHTML+=
+ `<tr><td>${x.model}</td><td>${x.cap}</td><td>${x.pret}</td>
+<td><button onclick="delBattery(${i})">Șterge</button></td></tr>`);
+
+let pan = load("panouri");
+tbl_panouri.innerHTML =
+ "<tr><th>Model</th><th>Putere</th><th>Preț</th><th></th></tr>";
+pan.forEach((x,i)=>tbl_panouri.innerHTML+=
+ `<tr><td>${x.model}</td><td>${x.power}</td><td>${x.pret}</td>
+<td><button onclick="delPanel(${i})">Șterge</button></td></tr>`);
+
+let mon = load("montaj");
+tbl_montaj.innerHTML =
+ "<tr><th>Denumire</th><th>Preț ML</th><th></th></tr>";
+mon.forEach((x,i)=>tbl_montaj.innerHTML+=
+ `<tr><td>${x.name}</td><td>${x.pret}</td>
+<td><button onclick="delMontaj(${i})">Șterge</button></td></tr>`);
+
+let tab = load("tablou");
+tbl_tablou.innerHTML =
+ "<tr><th>Model</th><th>Preț</th><th></th></tr>";
+tab.forEach((x,i)=>tbl_tablou.innerHTML+=
+ `<tr><td>${x.model}</td><td>${x.pret}</td>
+<td><button onclick="delTablou(${i})">Șterge</button></td></tr>`);
+
+let alt = load("altele");
+tbl_altele.innerHTML =
+ "<tr><th>Denumire</th><th>Preț</th><th></th></tr>";
+alt.forEach((x,i)=>tbl_altele.innerHTML+=
+ `<tr><td>${x.name}</td><td>${x.pret}</td>
+<td><button onclick="delAlt(${i})">Șterge</button></td></tr>`);
+}
+
+function addInverter(){
+ let a=load("invertoare");
+ a.push({model:inv_model.value, power:+inv_power.value, pret:+inv_price.value});
+ save("invertoare",a); refreshTables();
+}
+function delInverter(i){
+ let a=load("invertoare"); a.splice(i,1); save("invertoare",a); refreshTables();
+}
+
+function addBattery(){
+ let a=load("baterii");
+ a.push({model:bat_model.value, cap:+bat_cap.value, pret:+bat_price.value});
+ save("baterii",a); refreshTables();
+}
+function delBattery(i){
+ let a=load("baterii"); a.splice(i,1); save("baterii",a); refreshTables();
+}
+
+function addPanel(){
+ let a=load("panouri");
+ a.push({model:pan_model.value, power:+pan_power.value, pret:+pan_price.value});
+ save("panouri",a); refreshTables();
+}
+function delPanel(i){
+ let a=load("panouri"); a.splice(i,1); save("panouri",a); refreshTables();
+}
+
+function addMontaj(){
+ let a=load("montaj");
+ a.push({name:montaj_name.value, pret:+montaj_price.value});
+ save("montaj",a); refreshTables();
+}
+function delMontaj(i){
+ let a=load("montaj"); a.splice(i,1); save("montaj",a); refreshTables();
+}
+
+function addTablou(){
+ let a=load("tablou");
+ a.push({model:tab_model.value, pret:+tab_price.value});
+ save("tablou",a); refreshTables();
+}
+function delTablou(i){
+ let a=load("tablou"); a.splice(i,1); save("tablou",a); refreshTables();
+}
+
+function addAlt(){
+ let a=load("altele");
+ a.push({name:alt_name.value, pret:+alt_price.value});
+ save("altele",a); refreshTables();
+}
+function delAlt(i){
+ let a=load("altele"); a.splice(i,1); save("altele",a); refreshTables();
+}
+
+function toggleTablou(){
+ if(sel_client.value==="non") tablou_box.style.display="flex";
+ else tablou_box.style.display="none";
+}
+
+function populateSelectors(){
+
+ let inv=load("invertoare"); sel_inv.innerHTML="";
+ inv.forEach(x=>sel_inv.innerHTML+=`<option>${x.model}</option>`);
+
+ let bat=load("baterii"); sel_bat.innerHTML="";
+ bat.forEach(x=>sel_bat.innerHTML+=`<option>${x.model}</option>`);
+
+ let pan=load("panouri"); sel_pan.innerHTML="";
+ pan.forEach(x=>sel_pan.innerHTML+=`<option>${x.model}</option>`);
+
+ let mon=load("montaj"); sel_montaj.innerHTML="";
+ mon.forEach(x=>sel_montaj.innerHTML+=`<option>${x.name}</option>`);
+
+ let alt=load("altele"); sel_alt.innerHTML="";
+ alt.forEach(x=>sel_alt.innerHTML+=`<option>${x.name}</option>`);
+
+ let tab=load("tablou"); sel_tablou.innerHTML="";
+ tab.forEach(x=>sel_tablou.innerHTML+=`<option>${x.model}</option>`);
+}
+
+document.addEventListener("input",calcTotal);
+
+function calcTotal(){
+
+ let inv=load("invertoare").find(x=>x.model===sel_inv.value);
+ let ti = inv?(+qty_inv.value*inv.pret*(1+(+add_inv.value/100))):0;
+ total_inv.textContent = ti.toFixed(2);
+
+ let bat=load("baterii").find(x=>x.model===sel_bat.value);
+ let tb = bat?(+qty_bat.value*bat.pret*(1+(+add_bat.value/100))):0;
+ total_bat.textContent = tb.toFixed(2);
+
+ let pan=load("panouri").find(x=>x.model===sel_pan.value);
+ let tp = pan?(+qty_pan.value*pan.pret*(1+(+add_pan.value/100))):0;
+ total_pan.textContent = tp.toFixed(2);
+
+ let mon=load("montaj").find(x=>x.name===sel_montaj.value);
+ let tm = mon?(+ml_montaj.value*mon.pret):0;
+ total_montaj.textContent = tm.toFixed(2);
+
+ let alt=load("altele").find(x=>x.name===sel_alt.value);
+ let ta = alt?(+qty_alt.value*alt.pret):0;
+ total_alt.textContent = ta.toFixed(2);
+
+ let tab=load("tablou").find(x=>x.model===sel_tablou.value);
+ let tt = tab?(+qty_tablou.value*tab.pret*(1+(+add_tablou.value/100))):0;
+ total_tablou.textContent = tt.toFixed(2);
+ total_tablou2.textContent = tt.toFixed(2);
+
+ final_total.textContent = (ti+tb+tp+tm+ta+tt).toFixed(2);
+}
+
+const excelBase64 = "UEsDBBQABgAIAAAAIQCi/yFCrAEAAMMGAAATAAgCW0NvbnRlbnRfVHlwZXNd... (TRUNCATED FOR BREVITY – FULL BASE64 HERE) ...";
+
+function base64ToArrayBuffer(base64){
+ let binary = atob(base64);
+ let len = binary.length;
+ let buffer = new ArrayBuffer(len);
+ let bytes = new Uint8Array(buffer);
+ for (let i=0;i<len;i++) bytes[i]=binary.charCodeAt(i);
+ return buffer;
+}
+
+function exportExcel(){
+
+ const buf = base64ToArrayBuffer(excelBase64);
+ const wb = XLSX.read(buf,{type:"array"});
+ const sh = wb.Sheets[wb.SheetNames[0]];
+
+ let inv=load("invertoare").find(x=>x.model===sel_inv.value);
+ let bat=load("baterii").find(x=>x.model===sel_bat.value);
+ let pan=load("panouri").find(x=>x.model===sel_pan.value);
+ let mon=load("montaj").find(x=>x.name===sel_montaj.value);
+ let alt=load("altele").find(x=>x.name===sel_alt.value);
+ let tab=load("tablou").find(x=>x.model===sel_tablou.value);
+
+ let ti = inv?(+qty_inv.value*inv.pret*(1+(+add_inv.value/100))):0;
+ let tb = bat?(+qty_bat.value*bat.pret*(1+(+add_bat.value/100))):0;
+ let tp = pan?(+qty_pan.value*pan.pret*(1+(+add_pan.value/100))):0;
+ let tm = mon?(+ml_montaj.value*mon.pret):0;
+ let ta = alt?(+qty_alt.value*alt.pret):0;
+ let tt = tab?(+qty_tablou.value*tab.pret*(1+(+add_tablou.value/100))):0;
+
+ let total = ti + tb + tp + tm + ta + tt;
+
+ sh["B7"]={v:pan?pan.model:""};  sh["D7"]={v:+qty_pan.value||0};  sh["F7"]={v:tp};
+ sh["B8"]={v:inv?inv.model:""};  sh["D8"]={v:+qty_inv.value||0};  sh["F8"]={v:ti};
+ sh["B10"]={v:bat?bat.model:""}; sh["D10"]={v:+qty_bat.value||0}; sh["F10"]={v:tb};
+ sh["B19"]={v:ta};
+ sh["B20"]={v:tm};
+ sh["G21"]={v:total};
+
+ const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+ const blob=new Blob([out],{type:"application/octet-stream"});
+ const url=URL.createObjectURL(blob);
+
+ let a=document.createElement("a");
+ a.href=url;
+ a.download="Oferta_client.xlsx";
+ a.click();
+
+ URL.revokeObjectURL(url);
+}
+
+</script>
+
+</body>
+</html>
